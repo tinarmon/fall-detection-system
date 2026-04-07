@@ -35,7 +35,7 @@ def create_sequences(X, y, time_steps):
 
 def main():
     # 2. เตรียมข้อมูล
-    X_raw, y_raw = load_and_preprocess_data('fall_dataset.csv')
+    X_raw, y_raw = load_and_preprocess_data('data/fall_dataset.csv') # แก้ Path
     print(f"จำนวนเฟรมข้อมูลทั้งหมด: {len(X_raw)} เฟรม")
     
     X_seq, y_seq = create_sequences(X_raw, y_raw, TIME_STEPS)
@@ -81,7 +81,8 @@ def main():
     print(f"ความแม่นยำของ AI (Test Accuracy): {accuracy * 100:.2f}%\n")
 
     # 6. บันทึกสมอง AI เก็บไว้ใช้งาน
-    model_filename = 'fall_model.keras'
+    os.makedirs('assets', exist_ok=True)
+    model_filename = 'assets/fall_model.keras' # แก้ Path
     model.save(model_filename)
     print(f"บันทึกโมเดลสำเร็จ! ไฟล์สมอง AI ชื่อ: '{model_filename}'")
 

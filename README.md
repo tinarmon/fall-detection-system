@@ -23,28 +23,27 @@
 ```text
 fall-detection-system/
 │
-├── 1. Core Modules (โมดูลหลักของระบบ)
-│   ├── pose_estimator.py          # คลาสจัดการ MediaPipe สกัดจุดพิกัด (Pixel & Normalized)
-│   ├── angle_calculator.py        # คลาสคำนวณองศาข้อต่อด้วยหลักตรีโกณมิติ
-│   └── pose_landmarker_full.task  # ไฟล์น้ำหนัก (Weights) ของ MediaPipe (ต้องดาวน์โหลดมาใส่)
+├── core/                          # โมดูลคลาสหลักของระบบ
+│   ├── pose_estimator.py          # คลาสจัดการ MediaPipe สกัดจุดพิกัด 
+│   └── angle_calculator.py        # คลาสคำนวณองศาข้อต่อด้วยหลักตรีโกณมิติ
 │
-├── 2. Data Pipeline (ชุดจัดการข้อมูลและวิเคราะห์)
-│   ├── collect_data.py            # สคริปต์สำหรับบันทึกข้อมูลสร้าง Train/Test Dataset
-│   ├── analyze_features.py        # สคริปต์ทำ EDA วิเคราะห์ค่า Mean/Std เพื่อหาตัวแปรที่มีนัยสำคัญ
+├── data/                          # ชุดข้อมูลและไฟล์วิเคราะห์
 │   ├── fall_dataset.csv           # ชุดข้อมูลสอน AI (Train Dataset)
-│   ├── test_dataset.csv           # ชุดข้อมูลทดสอบ AI (Test Dataset - ข้อมูลคนใหม่)
-│   └── feature_statistics_report.csv # ตารางสรุปผลทางสถิติ (ใช้ประกอบบทที่ 4)
+│   ├── test_dataset.csv           # ชุดข้อมูลทดสอบ AI (Test Dataset)
+│   ├── live_collected_data.csv    # บันทึกข้อมูลอัตโนมัติขณะระบบทำงาน
+│   └── feature_statistics_report.csv # ตารางสรุปผลสถิติสำหรับบทที่ 4
 │
-├── 3. AI & Deep Learning (ชุดฝึกสอนและประเมินผล)
-│   ├── train_model.py             # สคริปต์สร้างและฝึกสอนโมเดล GRU
-│   ├── evaluate_model.py          # สคริปต์ทดสอบความแม่นยำ (Accuracy, Confusion Matrix)
-│   └── fall_model.keras           # ไฟล์โมเดลสมอง AI ที่พร้อมใช้งาน
+├── assets/                        # ไฟล์น้ำหนักของโมเดล AI
+│   ├── pose_landmarker_full.task  # ไฟล์ Weights ของ MediaPipe
+│   └── fall_model.keras           # ไฟล์สมอง AI (GRU) ที่เทรนเสร็จแล้ว
 │
-└── 4. Production (ระบบใช้งานจริง)
-    ├── main.py                    # โปรแกรมหลัก รันระบบแจ้งเตือนแบบ Real-time
-    ├── live_collected_data.csv    # ไฟล์บันทึกข้อมูลอัตโนมัติขณะระบบทำงาน (Auto-Logging)
-    └── requirements.txt           # รายการไลบรารีที่จำเป็น
-```
+├── collect_data.py                # สคริปต์บันทึกข้อมูลท่าทาง
+├── analyze_features.py            # สคริปต์วิเคราะห์ค่าสถิติ (EDA)
+├── train_model.py                 # สคริปต์เทรนโมเดล AI
+├── evaluate_model.py              # สคริปต์ทดสอบความแม่นยำ
+├── main.py                        # โปรแกรมระบบแจ้งเตือนแบบ Real-time
+├── requirements.txt               
+└── README.md
 
 ---
 
@@ -98,4 +97,3 @@ fall-detection-system/
 2. หากระบบวิเคราะห์ว่าปลอดภัย แถบสถานะจะเป็นสีเขียว (**NORMAL**)
 3. หากระบบประเมินว่ามีความเสี่ยง (Confidence > 60%) หน้าจอจะกระพริบกรอบสีแดงพร้อมข้อความ **"WARNING: LOSS OF BALANCE!"** ทันที
 4. *คุณสมบัติพิเศษ:* ระหว่างที่ระบบทำงาน ข้อมูลพฤติกรรมจะถูกแอบบันทึกแบบอัตโนมัติลงในไฟล์ `live_collected_data.csv` เพื่อสะสมเป็น Big Data สำหรับพัฒนาโมเดลในอนาคต
-```

@@ -1,11 +1,11 @@
 import cv2
 import csv
 import os
-from pose_estimator import PoseEstimator
-from angle_calculator import AngleCalculator
+from core.pose_estimator import PoseEstimator       # แก้ import
+from core.angle_calculator import AngleCalculator   # แก้ import
 
 def main():
-    estimator = PoseEstimator('pose_landmarker_full.task') 
+    estimator = PoseEstimator('assets/pose_landmarker_full.task') # แก้ Path
     calculator = AngleCalculator()
     
     cap = cv2.VideoCapture(0)
@@ -14,7 +14,8 @@ def main():
     cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
     cv2.resizeWindow(window_name, 1280, 720) 
 
-    csv_file = 'fall_dataset.csv'
+    os.makedirs('data', exist_ok=True) # สร้างโฟลเดอร์ data เผื่อไว้
+    csv_file = 'data/fall_dataset.csv' # แก้ Path
     file_exists = os.path.isfile(csv_file)
     
     with open(csv_file, mode='a', newline='') as f:
@@ -90,7 +91,7 @@ def main():
                         # ดึงพิกัด points_norm (0.0-1.0) ลงไฟล์ CSV แทน!
                         row_data.extend([points_norm[target][0], points_norm[target][1]])
                     writer.writerow(row_data)
-                    
+
             cv2.putText(processed_frame, status_text, (30, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 3)
             cv2.imshow(window_name, processed_frame)
 

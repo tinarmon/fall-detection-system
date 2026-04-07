@@ -2,20 +2,20 @@ import cv2
 import numpy as np
 from collections import deque
 import tensorflow as tf
-import csv # เพิ่มไลบรารี csv
-import os  # เพิ่มไลบรารี os
-from pose_estimator import PoseEstimator
-from angle_calculator import AngleCalculator
+import csv 
+import os  
+from core.pose_estimator import PoseEstimator      # แก้ import
+from core.angle_calculator import AngleCalculator  # แก้ import
 
 def main():
     print("กำลังโหลดโมเดล AI (ใช้เวลาสักครู่)...")
     try:
-        model = tf.keras.models.load_model('fall_model.keras')
+        model = tf.keras.models.load_model('assets/fall_model.keras') # แก้ Path
     except Exception as e:
         print("กรุณาตรวจสอบว่ามีไฟล์ 'fall_model.keras' อยู่ในโฟลเดอร์นี้หรือไม่")
         return
 
-    estimator = PoseEstimator('pose_landmarker_full.task') 
+    estimator = PoseEstimator('assets/pose_landmarker_full.task') # แก้ Path
     calculator = AngleCalculator()
     
     TIME_STEPS = 10
@@ -23,7 +23,8 @@ def main():
     
     # -------------------------------------------------------------
     # [ส่วนที่เพิ่มใหม่] เตรียมไฟล์เก็บบันทึกข้อมูลจากระบบ Live
-    live_csv_file = 'live_collected_data.csv'
+    os.makedirs('data', exist_ok=True)
+    live_csv_file = 'data/live_collected_data.csv' # แก้ Path
     file_exists = os.path.isfile(live_csv_file)
     # เปิดไฟล์ทิ้งไว้เลย (Append mode)
     f_live = open(live_csv_file, mode='a', newline='')

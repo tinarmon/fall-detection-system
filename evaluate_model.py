@@ -16,7 +16,7 @@ def main():
     print("--- ระบบประเมินความแม่นยำของ AI (Evaluation Mode) ---")
     
     # 1. โหลด Test Data (ข้อมูลคนใหม่ที่ไม่เคยใช้เทรน)
-    test_file = 'test_dataset.csv'
+    test_file = 'data/test_dataset.csv' # แก้ Path
     try:
         df = pd.read_csv(test_file)
         X_raw = df.drop('label', axis=1).values 
@@ -29,7 +29,7 @@ def main():
 
     # 2. โหลดโมเดล
     try:
-        model = tf.keras.models.load_model('fall_model.keras')
+        model = tf.keras.models.load_model('assets/fall_model.keras') # แก้ Path
         print("โหลดสมอง AI 'fall_model.keras' สำเร็จ!\n")
     except:
         print("ไม่พบไฟล์โมเดล กรุณาเทรนโมเดลก่อนครับ")

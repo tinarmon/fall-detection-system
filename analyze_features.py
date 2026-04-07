@@ -2,8 +2,8 @@ import pandas as pd
 import numpy as np
 
 def main():
-    # 1. กำหนดชื่อไฟล์ที่ต้องการนำมาวิเคราะห์
-    dataset_file = 'fall_dataset.csv'
+    os.makedirs('data', exist_ok=True)
+    dataset_file = 'data/fall_dataset.csv'          # แก้ Path
     
     print(f"🔍 กำลังวิเคราะห์ข้อมูลทางสถิติจากไฟล์: '{dataset_file}'...")
     try:
@@ -43,7 +43,7 @@ def main():
     print("="*70)
 
     # 5. บันทึกผลลัพธ์เป็นไฟล์ CSV เพื่อให้นำไปทำตารางใน Word ได้ง่ายๆ
-    output_file = 'feature_statistics_report.csv'
+    output_file = 'data/feature_statistics_report.csv' # แก้ Path
     summary.to_csv(output_file)
     print(f"\n✅ บันทึกตารางสรุปผลลงในไฟล์ '{output_file}' เรียบร้อยแล้ว!")
     print("💡 คำแนะนำ: คุณสามารถนำไฟล์นี้ไปเปิดใน Excel เพื่อคัดลอกลงเล่มบทที่ 4 หรือ 5 ได้ทันที")
