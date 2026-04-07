@@ -44,7 +44,7 @@ fall-detection-system/
 ├── main.py                        # โปรแกรมระบบแจ้งเตือนแบบ Real-time
 ├── requirements.txt               
 └── README.md
-
+```
 ---
 
 ## ⚙️ ความต้องการของระบบและการติดตั้ง (Installation)
@@ -58,8 +58,6 @@ fall-detection-system/
    source venv/bin/activate  # (สำหรับ Windows ใช้: venv\Scripts\activate)
    pip install -r requirements.txt
    ```
-
----
 
 ## 🚀 คู่มือการใช้งานตามลำดับ Pipeline (Usage Instructions)
 
