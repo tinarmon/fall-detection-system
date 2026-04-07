@@ -2,27 +2,40 @@ import cv2
 import numpy as np
 from collections import deque
 import tensorflow as tf
+import csv # เพิ่มไลบรารี csv
+import os  # เพิ่มไลบรารี os
 from pose_estimator import PoseEstimator
 from angle_calculator import AngleCalculator
 
 def main():
-    # 1. โหลดสมอง AI และโมดูลวิเคราะห์ภาพ
     print("กำลังโหลดโมเดล AI (ใช้เวลาสักครู่)...")
     try:
         model = tf.keras.models.load_model('fall_model.keras')
     except Exception as e:
-        print(f"เกิดข้อผิดพลาดในการโหลดโมเดล: {e}")
         print("กรุณาตรวจสอบว่ามีไฟล์ 'fall_model.keras' อยู่ในโฟลเดอร์นี้หรือไม่")
         return
 
     estimator = PoseEstimator('pose_landmarker_full.task') 
     calculator = AngleCalculator()
     
-    # 2. ตั้งค่าระบบความจำ (Buffer) สำหรับเก็บข้อมูลย้อนหลัง 10 เฟรม
     TIME_STEPS = 10
     sequence_buffer = deque(maxlen=TIME_STEPS)
     
-    # เปิดกล้องและตั้งค่าหน้าต่าง
+    # -------------------------------------------------------------
+    # [ส่วนที่เพิ่มใหม่] เตรียมไฟล์เก็บบันทึกข้อมูลจากระบบ Live
+    live_csv_file = 'live_collected_data.csv'
+    file_exists = os.path.isfile(live_csv_file)
+    # เปิดไฟล์ทิ้งไว้เลย (Append mode)
+    f_live = open(live_csv_file, mode='a', newline='')
+    writer = csv.writer(f_live)
+    
+    if not file_exists:
+        header = ['predicted_label', 'left_angle', 'right_angle']
+        for target in [11, 12, 23, 24, 25, 26]:
+            header.extend([f'x{target}', f'y{target}'])
+        writer.writerow(header)
+    # -------------------------------------------------------------
+
     cap = cv2.VideoCapture(0)
     window_name = 'Fall Detection System - LIVE'
     cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
@@ -40,49 +53,39 @@ def main():
         is_valid_pose = False
         left_angle, right_angle = 0, 0
 
-        # ตรวจสอบพิกัดร่างกาย (ใช้ points_px ในการวาดและคำนวณมุมเหมือนเดิม)
         if points_px:
             if all(k in points_px for k in [11, 12, 23, 24, 25, 26]):
                 is_valid_pose = True
                 left_angle = calculator.calculate_angle(points_px[11], points_px[23], points_px[25])
                 right_angle = calculator.calculate_angle(points_px[12], points_px[24], points_px[26])
 
-        # 3. เตรียมข้อมูลและป้อนให้ AI ทำนายผล
         if is_valid_pose:
-            # ใช้ points_norm ป้อนเข้า AI 
             features = [left_angle, right_angle]
             for target in [11, 12, 23, 24, 25, 26]:
                 features.extend([points_norm[target][0], points_norm[target][1]])
             
-            # นำข้อมูลของเฟรมปัจจุบันใส่เข้าไปในหางคิว
             sequence_buffer.append(features)
             
-            # ถ้าเก็บข้อมูลครบ 10 เฟรมแล้ว ให้ AI เริ่มทำงาน
             if len(sequence_buffer) == TIME_STEPS:
-                # แปลงข้อมูลในคิวเป็น Numpy Array และปรับรูปทรงให้ตรงกับที่ GRU ต้องการ 
-                # (1 ตัวอย่าง, 10 ช่วงเวลา, 14 ฟีเจอร์)
                 input_data = np.array(sequence_buffer).reshape(1, TIME_STEPS, len(features))
-                
-                # AI ทำนายผล (ค่า prediction จะออกมาเป็นตัวเลข 0.00 ถึง 1.00)
-                # เราใส่ verbose=0 เพื่อไม่ให้มันปริ้นต์ log รกเต็ม Terminal
                 prediction = model.predict(input_data, verbose=0)[0][0]
                 
-                # 4. ระบบแจ้งเตือน (Alert System)
-                # ตั้งเกณฑ์ (Threshold): ถ้าความน่าจะเป็นเกิน 60% (0.6) ถือว่าเกิดการล้ม
+                # ตัดสินใจ Label: เตือนแดง=1, เขียว=0
+                predicted_label = 1 if prediction > 0.6 else 0
+                
+                # -------------------------------------------------------------
+                # [ส่วนที่เพิ่มใหม่] บันทึกข้อมูลของเฟรมปัจจุบันลง CSV
+                row_data = [predicted_label] + features
+                writer.writerow(row_data)
+                # -------------------------------------------------------------
+                
                 if prediction > 0.6:  
-                    # หน้าจอแจ้งเตือน: วาดกรอบสีแดงหนาๆ และขึ้นข้อความ WARNING
                     cv2.rectangle(processed_frame, (0, 0), (processed_frame.shape[1], processed_frame.shape[0]), (0, 0, 255), 20)
-                    cv2.putText(processed_frame, "WARNING: FALL DETECTED!", (50, 100), 
-                                cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 5)
-                    cv2.putText(processed_frame, f"AI Confidence: {prediction*100:.1f}%", (50, 160), 
-                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
+                    cv2.putText(processed_frame, "WARNING: FALL DETECTED!", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 5)
+                    cv2.putText(processed_frame, f"AI Confidence: {prediction*100:.1f}%", (50, 160), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
                 else:
-                    # หน้าจอสถานะปกติ: ขึ้นข้อความสีเขียว
-                    cv2.putText(processed_frame, "Status: NORMAL", (50, 100), 
-                                cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 255, 0), 3)
-                    # โชว์เปอร์เซ็นต์ความเสี่ยงเล็กๆ ไว้ที่มุมขวาบน
-                    cv2.putText(processed_frame, f"Risk: {prediction*100:.1f}%", (1000, 50), 
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+                    cv2.putText(processed_frame, "Status: NORMAL", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 255, 0), 3)
+                    cv2.putText(processed_frame, f"Risk: {prediction*100:.1f}%", (1000, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
 
         cv2.imshow(window_name, processed_frame)
 
@@ -90,6 +93,10 @@ def main():
         if key == ord('q') or key == ord('ๆ') or (key & 0xFF == ord('q')) or key == 27:
             break
 
+    # -------------------------------------------------------------
+    # [ส่วนที่เพิ่มใหม่] ปิดไฟล์เมื่อเลิกใช้งาน
+    f_live.close()
+    # -------------------------------------------------------------
     cap.release()
     cv2.destroyAllWindows()
 
