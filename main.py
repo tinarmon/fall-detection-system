@@ -35,24 +35,24 @@ def main():
         if not ret:
             break
 
-        processed_frame, points_px = estimator.process_frame(frame)
+        processed_frame, points_px, points_norm = estimator.process_frame(frame)
         
         is_valid_pose = False
         left_angle, right_angle = 0, 0
 
-        # ตรวจสอบพิกัดร่างกาย
+        # ตรวจสอบพิกัดร่างกาย (ใช้ points_px ในการวาดและคำนวณมุมเหมือนเดิม)
         if points_px:
             if all(k in points_px for k in [11, 12, 23, 24, 25, 26]):
                 is_valid_pose = True
                 left_angle = calculator.calculate_angle(points_px[11], points_px[23], points_px[25])
                 right_angle = calculator.calculate_angle(points_px[12], points_px[24], points_px[26])
 
-        # 3. เตรียมข้อมูลและป้อนให้ AI ทำนายผล (Prediction)
+        # 3. เตรียมข้อมูลและป้อนให้ AI ทำนายผล
         if is_valid_pose:
-            # จัดเรียงข้อมูลให้ตรงกับไฟล์ CSV เป๊ะๆ (มุมซ้าย, มุมขวา, และพิกัด x,y ทั้ง 6 จุด รวม 14 ค่า)
+            # ใช้ points_norm ป้อนเข้า AI 
             features = [left_angle, right_angle]
             for target in [11, 12, 23, 24, 25, 26]:
-                features.extend([points_px[target][0], points_px[target][1]])
+                features.extend([points_norm[target][0], points_norm[target][1]])
             
             # นำข้อมูลของเฟรมปัจจุบันใส่เข้าไปในหางคิว
             sequence_buffer.append(features)
