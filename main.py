@@ -5,18 +5,34 @@ import tensorflow as tf
 import csv 
 import os  
 import time 
+import tkinter as tk                     # <--- โหลดไลบรารีสร้างหน้าต่าง GUI
+from tkinter import simpledialog         # <--- โหลดไลบรารีสร้างหน้าต่าง Popup
 from core.pose_estimator import PoseEstimator
 from core.angle_calculator import AngleCalculator
-from core.ui_manager import UIManager  # <--- โหลดคลาส UI เข้ามาใหม่
+from core.ui_manager import UIManager  
+
+def ask_tester_name(current_name="Subject_01"):
+    """
+    ฟังก์ชันสำหรับสร้างหน้าต่าง Popup ให้กรอกชื่อ โดยไม่ต้องใช้ Terminal
+    """
+    root = tk.Tk()
+    root.withdraw() # ซ่อนหน้าต่างหลักสีเทาๆ ทิ้งไป ให้เหลือแต่ Popup
+    # เด้งหน้าต่างถามชื่อ
+    name = simpledialog.askstring("Tester Input", "กรุณากรอกชื่อหรือ ID ของผู้ทดสอบ:", initialvalue=current_name)
+    root.destroy() # เคลียร์หน่วยความจำหลังกรอกเสร็จ
+    
+    if name and name.strip():
+        return name.strip()
+    return "Unknown"
 
 def main():
     print("="*50)
     print("🚶‍♂️ ระบบตรวจจับการเสียการทรงตัว (Live Prediction)")
     print("="*50)
-    tester_name = input("กรุณากรอกชื่อหรือ ID ของผู้ทดสอบ (เช่น Subject_01): ")
-    if not tester_name.strip():
-        tester_name = "Unknown"
-    print(f"\nยินดีต้อนรับคุณ {tester_name} ระบบกำลังเริ่มทำงาน...\n")
+    
+    # 1. เรียกหน้าต่าง Popup ถามชื่อตั้งแต่เริ่มรันโปรแกรม
+    tester_name = ask_tester_name("")
+    print(f"\nยินดีต้อนรับคุณ {tester_name} ระบบกำลังเปิดกล้อง...\n")
 
     print("กำลังโหลดโมเดล AI (ใช้เวลาสักครู่)...")
     try:
@@ -25,10 +41,9 @@ def main():
         print("กรุณาตรวจสอบว่ามีไฟล์ 'fall_model.keras' อยู่ในโฟลเดอร์นี้หรือไม่")
         return
 
-    # เรียกใช้งานคลาสต่างๆ
     estimator = PoseEstimator('assets/pose_landmarker_full.task') 
     calculator = AngleCalculator()
-    ui = UIManager() # <--- ประกาศตัวแปรเรียกใช้ UI
+    ui = UIManager() 
     
     TIME_STEPS = 10
     sequence_buffer = deque(maxlen=TIME_STEPS)
@@ -47,11 +62,11 @@ def main():
         writer.writerow(header)
 
     cap = cv2.VideoCapture(0)
-    window_name = f'Fall Detection System - Tester: {tester_name}'
+    window_name = f'Fall Detection System' # ปรับชื่อหน้าต่างให้คงที่
     cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
     cv2.resizeWindow(window_name, 1280, 720) 
 
-    print("ระบบพร้อมทำงาน! กด 'q', 'ๆ' หรือ 'ESC' เพื่อออก")
+    print("ระบบพร้อมทำงาน! กด 'q' เพื่อออก หรือกด 'n' เพื่อเปลี่ยนชื่อผู้ทดสอบ")
 
     prev_time = time.time()
 
@@ -107,9 +122,6 @@ def main():
                     status_text = "FALL DETECTED"
                     theme_color = (0, 0, 255) 
 
-        # ==========================================
-        # โยนภาระวาดหน้าจอไปให้ UIManager จัดการบรรทัดเดียวจบ!
-        # ==========================================
         processed_frame = ui.draw_hud(
             frame=processed_frame, 
             tester_name=tester_name, 
@@ -125,6 +137,12 @@ def main():
         key = cv2.waitKey(1)
         if key == ord('q') or key == ord('ๆ') or (key & 0xFF == ord('q')) or key == 27:
             break
+        # 2. เพิ่มระบบตรวจจับการกดปุ่ม 'n' เพื่อเปลี่ยนชื่อ
+        elif key == ord('n') or key == ord('ช'):
+            new_name = ask_tester_name(tester_name) # เด้ง Popup พร้อมแสดงชื่อเก่า
+            if new_name:
+                tester_name = new_name
+                print(f"อัปเดตชื่อผู้ทดสอบเป็น: {tester_name}")
 
     f_live.close()
     cap.release()
