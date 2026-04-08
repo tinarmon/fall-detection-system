@@ -62,6 +62,17 @@ def main():
         writer.writerow(header)
 
     cap = cv2.VideoCapture(0)
+
+    # --- เพิ่มส่วนนี้เพื่อปลดล็อกมุมมองกว้างของ Nubwo NWC591 ---
+    # ตั้งค่าเป็น 1280x720 (แนะนำสำหรับความลื่นไหล) หรือ 1920x1080
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+    
+    # หากต้องการความชัดสูงสุดแบบ Full HD ให้ใช้ค่านี้แทน (แต่ AI อาจจะประมวลผลช้าลงเล็กน้อย)
+    # cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+    # cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+    # -------------------------------------------------------
+
     window_name = f'Fall Detection System' # ปรับชื่อหน้าต่างให้คงที่
     cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
     cv2.resizeWindow(window_name, 1280, 720) 
