@@ -68,14 +68,14 @@ def main():
 
     print("กำลังเชื่อมต่อกล้อง...")
 
-    cap = cv2.VideoCapture(0)
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+    cap = cv2.VideoCapture(config.CAMERA_INDEX)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, config.CAMERA_WIDTH)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, config.CAMERA_HEIGHT)
     time.sleep(1)  # หน่วงเวลา 1 วินาทีให้ฮาร์ดแวร์กล้องตั้งตัว
 
-    window_name = "Fall Detection System"
-    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
-    cv2.resizeWindow(window_name, 1280, 720)
+    cap = cv2.VideoCapture(config.CAMERA_INDEX)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, config.CAMERA_WIDTH)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, config.CAMERA_HEIGHT)
 
     print("ระบบพร้อมทำงาน! กด 'q' เพื่อออก หรือกด 'n' เพื่อเปลี่ยนชื่อผู้ทดสอบ")
 

@@ -1,5 +1,5 @@
 import cv2
-
+import config
 
 class UIManager:
     def __init__(self):
@@ -79,7 +79,7 @@ class UIManager:
         )
 
         # 5. วาดขอบจอสีแดงเตือนภัยเมื่อมีความเสี่ยงสูง
-        if float(prediction) > 0.6:
+        if float(prediction) > config.FALL_THRESHOLD:
             cv2.rectangle(frame, (0, 0), (w - 1, h - 1), theme_color, 6)
 
         return frame  # ✅ return อยู่ท้ายสุด ถูกต้อง

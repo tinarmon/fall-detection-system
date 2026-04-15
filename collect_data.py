@@ -3,19 +3,20 @@ import csv
 import os
 from core.pose_estimator import PoseEstimator       # แก้ import
 from core.angle_calculator import AngleCalculator   # แก้ import
+import config
 
 def main():
-    estimator = PoseEstimator('assets/pose_landmarker_full.task') # แก้ Path
+    estimator = PoseEstimator(config.POSE_TASK_PATH) # แก้ Path
     calculator = AngleCalculator()
     
     cap = cv2.VideoCapture(0)
     
-    window_name = 'Data Collection Mode'
+    window_name = config.COLLECT_WINDOW_NAME
     cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
-    cv2.resizeWindow(window_name, 1280, 720) 
+    cv2.resizeWindow(window_name, config.WINDOW_WIDTH, config.WINDOW_HEIGHT)
 
     os.makedirs('data', exist_ok=True) # สร้างโฟลเดอร์ data เผื่อไว้
-    csv_file = 'data/fall_dataset.csv' # แก้ Path
+    csv_file = config.DATASET_PATH # แก้ Path
     file_exists = os.path.isfile(csv_file)
     
     with open(csv_file, mode='a', newline='') as f:
@@ -23,7 +24,7 @@ def main():
         
         if not file_exists:
             header = ['label', 'left_angle', 'right_angle']
-            for target in [11, 12, 23, 24, 25, 26]:
+            for target in config.TARGET_LANDMARKS:
                 header.extend([f'x{target}', f'y{target}'])
             writer.writerow(header)
 
@@ -47,7 +48,7 @@ def main():
             is_valid_pose = False
 
             if points_px:
-                if all(k in points_px for k in [11, 12, 23, 24, 25, 26]):
+                if all(k in points_px for k in config.TARGET_LANDMARKS):
                     is_valid_pose = True
                     # เรายังใช้ points_px คำนวณมุมเหมือนเดิม เพื่อให้มุมสมจริงกับภาพหน้าจอ
                     left_angle = calculator.calculate_angle(points_px[11], points_px[23], points_px[25])
@@ -77,7 +78,7 @@ def main():
                 color = (0, 255, 0)
                 if is_valid_pose:
                     row_data = [0, left_angle / 180.0, right_angle / 180.0]
-                    for target in [11, 12, 23, 24, 25, 26]:
+                    for target in config.TARGET_LANDMARKS:
                         # ดึงพิกัด points_norm (0.0-1.0) ลงไฟล์ CSV แทน!
                         row_data.extend([points_norm[target][0], points_norm[target][1]])
                     writer.writerow(row_data)
@@ -87,7 +88,7 @@ def main():
                 color = (0, 165, 255)
                 if is_valid_pose:
                     row_data = [1, left_angle, right_angle]
-                    for target in [11, 12, 23, 24, 25, 26]:
+                    for target in config.TARGET_LANDMARKS:
                         # ดึงพิกัด points_norm (0.0-1.0) ลงไฟล์ CSV แทน!
                         row_data.extend([points_norm[target][0], points_norm[target][1]])
                     writer.writerow(row_data)
