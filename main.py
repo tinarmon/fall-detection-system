@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import config
 from collections import deque
 import tensorflow as tf
 import csv
