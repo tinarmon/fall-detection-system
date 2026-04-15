@@ -68,6 +68,8 @@ def main():
     print("กำลังเชื่อมต่อกล้อง...")
 
     cap = cv2.VideoCapture(0)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
     time.sleep(1)  # หน่วงเวลา 1 วินาทีให้ฮาร์ดแวร์กล้องตั้งตัว
 
     window_name = "Fall Detection System"
