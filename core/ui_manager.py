@@ -38,6 +38,7 @@ class UIManager:
         # 5. วาดขอบจอสีแดงเตือนภัยเมื่อมีความเสี่ยงสูง
         if prediction > 0.6:
             cv2.rectangle(frame, (0, 0), (w, h), theme_color, 5)
+        return frame
 
             # เพิ่มการแสดงผลองศาบนหน้าจอ (ใส่ใน class UIManager)
     def draw_angles(self, frame, points_px, left_angle, right_angle):
