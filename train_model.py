@@ -5,6 +5,7 @@ import config
 from sklearn.model_selection import train_test_split
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import GRU, Dense, Dropout
+import os
 
 # 1. ตั้งค่าไฮเปอร์พารามิเตอร์ (Hyperparameters)
 TIME_STEPS = config.TIME_STEPS  # ให้ AI ดูพฤติกรรมย้อนหลัง n เฟรม เพื่อตัดสินใจว่าล้มหรือไม่
