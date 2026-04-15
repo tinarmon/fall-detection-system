@@ -1,105 +1,102 @@
 
+
 # Pre-Fall Detection System using MediaPipe and GRU
 
-This repository contains the source code for a real-time, skeleton-based "loss-of-balance" (pre-fall) detection system. Unlike traditional post-fall detection systems that rely on impact heuristics, this pipeline utilizes spatial-temporal modeling to proactively identify instability. 
+ระบบตรวจจับสภาวะการเสียการทรงตัว (Pre-fall) แบบเรียลไทม์ โดยใช้การวิเคราะห์โครงร่างมนุษย์ (Skeleton-based) เพื่อระบุความเสี่ยงก่อนเกิดการล้ม แตกต่างจากระบบตรวจจับการล้มทั่วไปที่อาศัยแรงกระแทก (Impact-based) ระบบนี้ใช้โมเดลโครงข่ายประสาทเทียมแบบ **Gated Recurrent Unit (GRU)** ในการวิเคราะห์ลำดับความเคลื่อนไหวเชิงเวลา (Spatial-Temporal)
 
-By leveraging Google's **MediaPipe** for lightweight pose estimation and a **Gated Recurrent Unit (GRU)** network for sequence classification, the system ensures privacy-preserving, camera-resolution-invariant monitoring at the edge.
+## 🏗️ สถาปัตยกรรมของระบบ (System Architecture)
 
----
+ระบบถูกออกแบบภายใต้โครงสร้าง 5 ขั้นตอนหลัก:
 
-## 🏗️ System Architecture
-
-The application is structured as a 5-layer edge-computing pipeline:
-
-1. **Video Ingestion Layer:** Captures real-time frames via OpenCV, optimized for minimal latency.
-2. **Spatial Feature Extraction (MediaPipe):** Utilizes the `PoseLandmarker` Tasks API to extract 3D skeleton configurations. The system filters for 6 critical keypoints: Shoulders (11, 12), Hips (23, 24), and Knees (25, 26).
-3. **Feature Engineering & Normalization:** * **Trigonometric Profiling:** Calculates dynamic left and right body-fold angles using `arctan2`.
-   * **Scale Invariance:** Translates raw pixel coordinates into normalized space `[0.0, 1.0]`, ensuring the predictive model remains agnostic to varying camera focal lengths and resolutions.
-4. **Temporal Classification (GRU):** Processes engineered features using a sliding window approach (`TIME_STEPS = 10`). The sequential data is fed into a multi-layer GRU neural network to capture the temporal dynamics of falling, outputting a binary probability state.
-5. **Real-time Telemetry & UI:** Renders a non-blocking Heads-Up Display (HUD) using a custom `UIManager`, featuring dynamic risk-bars and automated background data logging for continuous model improvement.
+1.  **Data Ingestion Layer:** รับภาพจากกล้องผ่าน OpenCV และประมวลผลที่ความละเอียด 640x480 (ปรับแต่งได้ใน `config.py`)
+2.  **Pose Estimation (MediaPipe):** ใช้ `PoseLandmarker` ในการตรวจจับจุดสำคัญของร่างกาย 33 จุด และคัดกรองเฉพาะ 6 จุดหลัก ได้แก่ หัวไหล่ (11, 12), สะโพก (23, 24) และเข่า (25, 26)
+3.  **Feature Engineering:** * **Trigonometric Calculation:** คำนวณมุมระหว่าง ไหล่-สะโพก-เข่า (Body-fold angles) ทั้งซ้ายและขวาด้วย `arctan2`
+    * **Scale Invariance:** แปลงพิกัดจาก Pixel เป็น Normalized Coordinates `[0.0, 1.0]` เพื่อให้โมเดลทำงานได้แม่นยำไม่ว่าระยะห่างจากกล้องจะเปลี่ยนไป
+4.  **Temporal Classification (GRU):** ใช้เทคนิค Sliding Window (10 เฟรมย้อนหลัง) ป้อนเข้าสู่โมเดล GRU 2 ชั้น เพื่อวิเคราะห์แนวโน้มการเคลื่อนไหว
+5.  **UI & Telemetry:** แสดงผลผ่าน Heads-Up Display (HUD) พร้อม Risk Bar บอกระดับความเสี่ยง และระบบ Auto-logging บันทึกข้อมูลการใช้งานจริง
 
 ---
 
-## 📂 Repository Structure
+## 📂 โครงสร้างโฟลเดอร์ (Repository Structure)
 
 ```text
 fall-detection-system/
-├── core/                           # Core operational modules
-│   ├── pose_estimator.py           # MediaPipe integration and landmark parsing
-│   ├── angle_calculator.py         # Trigonometric joint angle computation
-│   └── ui_manager.py               # HUD rendering and telemetry overlay
-├── data/                           # Datasets and exploratory analysis outputs
-│   ├── fall_dataset.csv            # Primary training dataset
-│   ├── test_dataset.csv            # Unseen testing dataset
-│   ├── live_collected_data.csv     # Auto-logged inference data
-│   └── feature_statistics.csv      # EDA statistical outputs
-├── assets/                         # Model weights and topologies
-│   ├── pose_landmarker_full.task   # MediaPipe base weights
-│   └── fall_model.keras            # Trained GRU network weights
-├── collect_data.py                 # Script for recording raw human poses
-├── analyze_features.py             # Exploratory Data Analysis (EDA) script
-├── train_model.py                  # GRU model architecture and training loop
-├── evaluate_model.py               # Model evaluation and metric generation
-├── main.py                         # Primary inference engine (Real-time tracking)
-└── requirements.txt                # Environment dependencies
+├── core/                   # โมดูลหลักในการทำงาน
+│   ├── pose_estimator.py   # จัดการ MediaPipe และการดึงพิกัด
+│   ├── angle_calculator.py # คำนวณองศาข้อต่อด้วยตรีโกณมิติ
+│   └── ui_manager.py       # จัดการ Dashboard และการแสดงผลบนจอ
+├── data/                   # ชุดข้อมูลและรายงานสถิติ
+│   ├── fall_dataset.csv    # ข้อมูลสำหรับ Train
+│   ├── test_dataset.csv    # ข้อมูลสำหรับ Test (Unseen data)
+│   └── feature_statistics_report.csv # รายงานวิเคราะห์ฟีเจอร์
+├── assets/                 # ไฟล์ Weights และโมเดล
+│   ├── pose_landmarker_full.task # Weights ของ MediaPipe
+│   └── fall_model.keras          # Weights ของโมเดล GRU ที่เทรนแล้ว
+├── config.py               # จุดรวมการตั้งค่า Hyperparameters และ Paths
+├── collect_data.py         # โปรแกรมเก็บข้อมูล (Data Collection)
+├── train_model.py          # โปรแกรมสร้างและฝึกสอนโมเดล GRU
+├── evaluate_model.py       # โปรแกรมประเมินความแม่นยำ (Confusion Matrix)
+├── main.py                 # โปรแกรมหลักสำหรับรันระบบตรวจจับ (Real-time)
+└── requirements.txt        # รายการ Library ที่ต้องใช้
 ```
 
 ---
 
-## ⚙️ Environment Setup
+## 🚀 ขั้นตอนการใช้งาน (Pipeline & Usage)
 
-**Prerequisites:** Python 3.8 - 3.11 is recommended.
+เพื่อให้ระบบทำงานได้อย่างมีประสิทธิภาพ ควรทำตามขั้นตอนดังนี้:
 
-1. Clone the repository and navigate to the project directory:
+
+### 1. การเตรียมสภาพแวดล้อม
+1. โคลนโปรเจ็คและเข้าใช้งานไฟล์:
    ```bash
-   git clone <your_repository_url>
+   git clone https://github.com/tinarmon/fall-detection-system.git
    cd fall-detection-system
    ```
-2. Initialize and activate a virtual environment:
+2. สร้างสภาพแวดล้อมจำลองสำหรับงาน:
    ```bash
    python -m venv venv
-   source venv/bin/activate  # On Windows use: venv\Scripts\activate
+   Linux use : source venv/bin/activate  
+   Windows use: venv\Scripts\activate
    ```
-3. Install the required dependencies:
+3. ติดตั้งไลบรารี่:
    ```bash
    pip install -r requirements.txt
    ```
 
+### 2. การเก็บข้อมูล (Data Collection)
+รันไฟล์ `collect_data.py` เพื่อสร้างชุดข้อมูลสอน AI
+* กด **'n'**: เริ่มบันทึกท่าทางปกติ (Label: 0)
+* กด **'f'**: เริ่มบันทึกท่าทางเสียการทรงตัว (Label: 1)
+* กด **'p'** หรือ **Spacebar**: หยุดบันทึกชั่วคราว
+* ข้อมูลจะถูกบันทึกเป็นพิกัดที่ผ่านการทำ Normalization แล้วลงใน `data/fall_dataset.csv`
+
+### 3. การวิเคราะห์ข้อมูล (Feature Analysis)
+รัน `analyze_features.py` เพื่อดูว่าตัวแปรใด (เช่น มุมสะโพก หรือตำแหน่งไหล่) ที่มีความแตกต่างระหว่างท่าปกติและท่าล้มมากที่สุด ผลลัพธ์จะช่วยในการเขียนรายงานเชิงสถิติในเล่มโครงงาน
+
+### 4. การฝึกสอนโมเดล (Training)
+รัน `train_model.py` เพื่อสร้างสมอง AI
+* โมเดลจะใช้ข้อมูลแบบ Sequence (10 เฟรมต่อ 1 การทำนาย)
+* มีการใช้ **Dropout (0.2)** เพื่อป้องกัน Overfitting
+* เมื่อเทรนเสร็จจะบันทึกไฟล์ไว้ที่ `assets/fall_model.keras`
+
+### 5. การประเมินผล (Evaluation)
+รัน `evaluate_model.py` เพื่อวัดประสิทธิภาพกับข้อมูลที่ไม่เคยเห็น
+* สรุปผลเป็น **Accuracy**, **Precision**, **Recall** และ **Confusion Matrix** เพื่อดูจำนวนครั้งที่เกิด False Alarm หรือ Missed Detection
+
+### 6. การใช้งานจริง (Real-time Inference)
+รัน `main.py` เพื่อเปิดระบบตรวจจับ
+* ระบบจะถามชื่อผู้ทดสอบผ่าน GUI Popup
+* หากค่าความน่าจะเป็นสูงกว่าที่ตั้งไว้ใน `config.py` (Default: 60%) ระบบจะแสดงกรอบสีแดงแจ้งเตือนทันที
+
 ---
 
-## 🚀 Machine Learning Pipeline & Usage
+## ⚙️ การปรับแต่ง (Configuration)
+คุณสามารถปรับแต่งค่าต่างๆ ได้ที่ไฟล์ `config.py` เช่น:
+* `TIME_STEPS`: จำนวนเฟรมย้อนหลังที่ AI ใช้จำเหตุการณ์
+* `FALL_THRESHOLD`: ค่าความอ่อนไหวในการแจ้งเตือน (0.0 - 1.0)
+* `TARGET_LANDMARKS`: จุดที่ต้องการให้ AI โฟกัส
 
-To replicate the project results or deploy the system, follow the operational pipeline in order:
-
-### 1. Data Ingestion & Annotation (`collect_data.py`)
-Used to generate sequential training and testing datasets.
-* Run: `python collect_data.py`
-* **Controls:** * Press `n` to record the Normal baseline state (Label: `0`).
-  * Press `f` to record the Loss-of-Balance state (Label: `1`).
-  * Press `p` (or Spacebar) to pause data collection.
-  * Press `q` to exit and save the `.csv` tensor.
-
-### 2. Exploratory Data Analysis (`analyze_features.py`)
-Provides statistical explainability (Explainable AI) regarding which physiological features are most indicative of a fall.
-* Run: `python analyze_features.py`
-* Calculates the Mean and Standard Deviation grouped by class vectors, outputting an ordered matrix to `feature_statistics_report.csv`.
-
-### 3. Neural Network Training (`train_model.py`)
-Compiles and trains the GRU architecture.
-* Run: `python train_model.py`
-* **Mechanism:** Slices the dataset into sequences of 10 frames. The model trains for 30 Epochs (by default) to minimize binary cross-entropy loss. Outputs the finalized weights to `assets/fall_model.keras`.
-
-### 4. Model Evaluation (`evaluate_model.py`)
-Validates model robustness against unseen data to prevent overfitting.
-* Run: `python evaluate_model.py`
-* Generates a comprehensive Classification Report (Precision, Recall, F1-Score) and a Confusion Matrix detailing False Alarms and Missed Detections.
-
-### 5. Edge Deployment / Real-time Inference (`main.py`)
-Initializes the live monitoring system.
-* Run: `python main.py`
-* **Behavior:** The system will dynamically calculate pose states. If the probabilistic confidence of instability exceeds the predefined threshold (60%), the UI triggers a critical visual alert. All live telemetry is asynchronously logged to `live_collected_data.csv` for future data pipelines.
-
-### Key Improvements Made:
-1. **Removed Emojis & Student Phrasing:** Stripped away localized terms like "สมอง AI" (AI Brain) and replaced them with the correct technical counterparts (e.g., "GRU network weights").
-2. **Clarified the "Why":** Rather than just saying "we convert coordinates to 0.0-1.0", the README now explains that this achieves *Scale Invariance*, proving technical competence.
-3. **Professional Formatting:** Utilized bolding, code blocks, and standard Markdown tree structures to make the repository highly readable for other developers or potential employers checking your GitHub.
+---
+**ผู้พัฒนา:** [ทินกฤต อมรบุตร/tinarmon]
+**เทคโนโลยีที่ใช้:** Python, TensorFlow, MediaPipe, OpenCV, Scikit-learn
