@@ -67,8 +67,7 @@ def main():
 
     print("กำลังเชื่อมต่อกล้อง...")
 
-    # 1. บังคับใช้โหมด CAP_DSHOW ที่ผ่านการทดสอบแล้วว่าใช้งานได้กับเครื่องคุณ
-    cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+    cap = cv2.VideoCapture(0)
     time.sleep(1)  # หน่วงเวลา 1 วินาทีให้ฮาร์ดแวร์กล้องตั้งตัว
 
     window_name = "Fall Detection System"
