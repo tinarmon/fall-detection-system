@@ -123,7 +123,7 @@ def main():
         theme_color = (0, 255, 0)
 
         if is_valid_pose:
-            features = [left_angle, right_angle]
+            features = [left_angle / 180.0, right_angle / 180.0]
             for target in [11, 12, 23, 24, 25, 26]:
                 features.extend([points_norm[target][0], points_norm[target][1]])
 

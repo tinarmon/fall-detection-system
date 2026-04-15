@@ -76,7 +76,7 @@ def main():
                 status_text = "Recording: NORMAL (0) ... [Press 'P' to Pause]"
                 color = (0, 255, 0)
                 if is_valid_pose:
-                    row_data = [0, left_angle, right_angle]
+                    row_data = [0, left_angle / 180.0, right_angle / 180.0]
                     for target in [11, 12, 23, 24, 25, 26]:
                         # ดึงพิกัด points_norm (0.0-1.0) ลงไฟล์ CSV แทน!
                         row_data.extend([points_norm[target][0], points_norm[target][1]])
