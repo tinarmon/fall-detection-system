@@ -39,4 +39,13 @@ class UIManager:
         if prediction > 0.6:
             cv2.rectangle(frame, (0, 0), (w, h), theme_color, 5)
 
+            # เพิ่มการแสดงผลองศาบนหน้าจอ (ใส่ใน class UIManager)
+    def draw_angles(self, frame, points_px, left_angle, right_angle):
+        if 23 in points_px: # สะโพกซ้าย
+            cv2.putText(frame, f"L: {int(left_angle)} deg", (points_px[23][0]-50, points_px[23][1]), 
+                    self.font, 0.5, (255, 255, 0), 1)
+        if 24 in points_px: # สะโพกขวา
+            cv2.putText(frame, f"R: {int(right_angle)} deg", (points_px[24][0]+10, points_px[24][1]), 
+                    self.font, 0.5, (255, 255, 0), 1)
+
         return frame

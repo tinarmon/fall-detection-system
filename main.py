@@ -61,12 +61,12 @@ def main():
             header.extend([f'x{target}', f'y{target}'])
         writer.writerow(header)
 
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 
     # --- เพิ่มส่วนนี้เพื่อปลดล็อกมุมมองกว้างของ Nubwo NWC591 ---
     # ตั้งค่าเป็น 1280x720 (แนะนำสำหรับความลื่นไหล) หรือ 1920x1080
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+    # cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+    # cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
     
     # หากต้องการความชัดสูงสุดแบบ Full HD ให้ใช้ค่านี้แทน (แต่ AI อาจจะประมวลผลช้าลงเล็กน้อย)
     # cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
@@ -143,7 +143,11 @@ def main():
             bbox=bbox
         )
 
-        cv2.imshow(window_name, processed_frame)
+        if processed_frame is not None and processed_frame.shape[0] > 0 and processed_frame.shape[1] > 0:
+            cv2.imshow(window_name, processed_frame)
+        else:
+            print("กำลังรอกล้องส่งภาพ...")
+            continue
 
         key = cv2.waitKey(1)
         if key == ord('q') or key == ord('ๆ') or (key & 0xFF == ord('q')) or key == 27:
