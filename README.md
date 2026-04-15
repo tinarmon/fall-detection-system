@@ -98,7 +98,6 @@ Validates model robustness against unseen data to prevent overfitting.
 Initializes the live monitoring system.
 * Run: `python main.py`
 * **Behavior:** The system will dynamically calculate pose states. If the probabilistic confidence of instability exceeds the predefined threshold (60%), the UI triggers a critical visual alert. All live telemetry is asynchronously logged to `live_collected_data.csv` for future data pipelines.
-```
 
 ### Key Improvements Made:
 1. **Removed Emojis & Student Phrasing:** Stripped away localized terms like "สมอง AI" (AI Brain) and replaced them with the correct technical counterparts (e.g., "GRU network weights").
