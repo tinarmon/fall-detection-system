@@ -1,14 +1,15 @@
 import pandas as pd
 import numpy as np
 import tensorflow as tf
+import config
 from sklearn.model_selection import train_test_split
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import GRU, Dense, Dropout
 
 # 1. ตั้งค่าไฮเปอร์พารามิเตอร์ (Hyperparameters)
-TIME_STEPS = 10  # ให้ AI ดูพฤติกรรมย้อนหลัง 10 เฟรม เพื่อตัดสินใจว่าล้มหรือไม่
-EPOCHS = 30  # จำนวนรอบที่ให้ AI อ่านหนังสือ (ชุดข้อมูล) ซ้ำๆ
-BATCH_SIZE = 32  # จำนวนข้อมูลที่ป้อนให้ AI เรียนรู้ต่อ 1 ครั้ง
+TIME_STEPS = config.TIME_STEPS  # ให้ AI ดูพฤติกรรมย้อนหลัง n เฟรม เพื่อตัดสินใจว่าล้มหรือไม่
+EPOCHS = config.EPOCHS  # จำนวนรอบที่ให้ AI อ่านหนังสือ (ชุดข้อมูล) ซ้ำๆ
+BATCH_SIZE = config.BATCH_SIZE  # จำนวนข้อมูลที่ป้อนให้ AI เรียนรู้ต่อ 1 ครั้ง
 
 
 def load_and_preprocess_data(csv_file):
@@ -38,7 +39,7 @@ def create_sequences(X, y, time_steps):
 
 def main():
     # 2. เตรียมข้อมูล
-    X_raw, y_raw = load_and_preprocess_data("data/fall_dataset.csv")  # แก้ Path
+    X_raw, y_raw = load_and_preprocess_data(config.DATASET_PATH)  # แก้ Path
     print(f"จำนวนเฟรมข้อมูลทั้งหมด: {len(X_raw)} เฟรม")
 
     X_seq, y_seq = create_sequences(X_raw, y_raw, TIME_STEPS)
@@ -87,7 +88,7 @@ def main():
 
     # 6. บันทึกสมอง AI เก็บไว้ใช้งาน
     os.makedirs("assets", exist_ok=True)
-    model_filename = "assets/fall_model.keras"  # แก้ Path
+    model_filename = config.MODEL_PATH  # แก้ Path
     model.save(model_filename)
     print(f"บันทึกโมเดลสำเร็จ! ไฟล์สมอง AI ชื่อ: '{model_filename}'")
 

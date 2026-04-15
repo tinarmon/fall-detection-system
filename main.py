@@ -1,11 +1,11 @@
 import cv2
 import numpy as np
-import config
 from collections import deque
 import tensorflow as tf
 import csv
 import os
 import time
+import config
 import tkinter as tk  # <--- โหลดไลบรารีสร้างหน้าต่าง GUI
 from tkinter import simpledialog  # <--- โหลดไลบรารีสร้างหน้าต่าง Popup
 from core.pose_estimator import PoseEstimator
@@ -41,20 +41,20 @@ def main():
 
     print("กำลังโหลดโมเดล AI (ใช้เวลาสักครู่)...")
     try:
-        model = tf.keras.models.load_model("assets/fall_model.keras")
+        model = tf.keras.models.load_model(config.MODEL_PATH)
     except Exception as e:
         print("กรุณาตรวจสอบว่ามีไฟล์ 'fall_model.keras' อยู่ในโฟลเดอร์นี้หรือไม่")
         return
 
-    estimator = PoseEstimator("assets/pose_landmarker_full.task")
+    estimator = PoseEstimator(config.POSE_TASK_PATH)
     calculator = AngleCalculator()
     ui = UIManager()
 
-    TIME_STEPS = 10
+    TIME_STEPS = config.TIME_STEPS
     sequence_buffer = deque(maxlen=TIME_STEPS)
 
     os.makedirs("data", exist_ok=True)
-    live_csv_file = "data/live_collected_data.csv"
+    live_csv_file = config.LIVE_DATA_PATH
     file_exists = os.path.isfile(live_csv_file)
 
     f_live = open(live_csv_file, mode="a", newline="")
@@ -62,7 +62,7 @@ def main():
 
     if not file_exists:
         header = ["tester_name", "predicted_label", "left_angle", "right_angle"]
-        for target in [11, 12, 23, 24, 25, 26]:
+        for target in config.TARGET_LANDMARKS:
             header.extend([f"x{target}", f"y{target}"])
         writer.writerow(header)
 
@@ -111,7 +111,7 @@ def main():
             min_y, max_y = max(0, min(ys) - 100), min(h, max(ys) + 50)
             bbox = (min_x, min_y, max_x, max_y)
 
-            if all(k in points_px for k in [11, 12, 23, 24, 25, 26]):
+            if all(k in points_px for k in config.TARGET_LANDMARKS):
                 is_valid_pose = True
                 left_angle = calculator.calculate_angle(
                     points_px[11], points_px[23], points_px[25]
@@ -126,7 +126,7 @@ def main():
 
         if is_valid_pose:
             features = [left_angle / 180.0, right_angle / 180.0]
-            for target in [11, 12, 23, 24, 25, 26]:
+            for target in config.TARGET_LANDMARKS:
                 features.extend([points_norm[target][0], points_norm[target][1]])
 
             sequence_buffer.append(features)
@@ -137,11 +137,11 @@ def main():
                 )
                 prediction = model.predict(input_data, verbose=0)[0][0]
 
-                predicted_label = 1 if prediction > 0.6 else 0
+                predicted_label = 1 if prediction > config.FALL_THRESHOLD else 0
                 row_data = [tester_name, predicted_label] + features
                 writer.writerow(row_data)
 
-                if prediction > 0.6:
+                if prediction > config.FALL_THRESHOLD:
                     status_text = "FALL DETECTED"
                     theme_color = (0, 0, 255)
 
